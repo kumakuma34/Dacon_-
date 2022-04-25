@@ -60,11 +60,68 @@ plt.figure(figsize = (12,10))
 plt.title('class counting', fontsize = 30)
 value_bar_ax = sns.barplot(x=counted_values.index, y=counted_values)
 value_bar_ax.tick_params(labelsize=20)
-plt.show()
+#plt.show()
 
 print(train.info())
 
 #범주형 피처 데이터를 시각화 하기 위해 범주형 피처만을 가진 데이터 프레임을 생성
 train_categori = train.drop(['id', 'age', 'fnlwgt', 'education.num', 'capital.gain', 'capital.loss', 'hours.per.week'],axis = 1) #범주형이 아닌 피쳐 drop
 
+#범주형 데이터 분포를 확인해보자
+def visualize(axx, field, num): ##그래프를 그리기 위한 메소드
+    sns.countplot(train_categori.columns[num], data= train_categori[train_categori['target'] == field],  color='#eaa18a', ax = axx) # countplot을 이용하여 그래프를 그려줍니다.
+    axx.set_title(field)
 
+figure, ((ax1,ax2),(ax3,ax4), (ax5, ax6),(ax7, ax8), (ax9, ax10),
+         (ax11,ax12),(ax13,ax14), (ax15, ax16))  = plt.subplots(nrows=8, ncols=2) ## 원하는 개수의 subplots 만들어주기
+figure.set_size_inches(40, 50) #(w,h)
+figure.suptitle('Compare categorical features', fontsize=40, y = 0.9)
+
+k = 0 # 피쳐 수
+j = 1 # 그래프 수
+while k<8:
+    for i in range(0,2):
+        visualize(eval(f'ax{j}'), train_categori['target'].unique()[i], k)
+        j = j+1
+    k = k+1
+
+plt.show()
+
+
+# 수치형 데이터 분포 확인
+train_numeric = train[['age', 'fnlwgt', 'capital.gain', 'capital.loss', 'hours.per.week', 'target']] #수치형 피쳐와 label인 target 추출
+
+def visualize(axx, field, num):
+    line = train_numeric[train_numeric['target'] == field] #메소드에서 target 클래스 추춣
+    name = train_numeric[train_numeric['target'] == field][train_numeric.columns[num]].name #메소드에서 이름 추출
+    sns.kdeplot(x = line[train_numeric.columns[num]],  data = train_numeric, ax = axx, color='#eaa18a') #countplot을 이용하여 그래프를 그려줍니다.
+    axx.axvline(line.describe()[name]['mean'], c='#f55354', label = f"mean = {round(line.describe()[name]['mean'], 2)}") #mean 통계값을 표기해줍니다.
+    axx.axvline(line.describe()[name]['50%'], c='#518d7d', label = f"median = {round(line.describe()[name]['50%'], 2)}") #median 통계값을 표기해줍니다.
+    axx.legend()
+    axx.set_title(field)
+
+figure, ((ax1,ax2),(ax3,ax4), (ax5, ax6),(ax7, ax8), (ax9, ax10))  = plt.subplots(nrows=5, ncols=2) ##원하는 개수의 subplots 만들어주기
+figure.set_size_inches(40, 50) #(w,h)
+figure.suptitle('Compare numeric features', fontsize=40, y = 0.9)
+
+k = 0 # 피쳐 수
+j = 1 # 그래프 수
+while k<5:
+    for i in range(0,2):
+        visualize(eval(f'ax{j}'), train_numeric['target'].unique()[i], k)
+        j = j+1
+    k = k+1
+
+plt.show(block=True)
+
+
+#상관관계
+plt.style.use('ggplot')
+plt.figure(figsize=(12, 10))
+plt.title('capital gain and working time', fontsize = 30)
+sns.scatterplot(x = 'capital.gain',  y= 'hours.per.week', hue= 'target', data= train[train['capital.gain'] > 0]) #산포도를 확실하게 차이나도록  시각화 해주기 위하여 capital.gain에서 0값을 제외
+
+plt.style.use('ggplot')
+plt.figure(figsize=(12, 10))
+plt.title('capital gain and working time', fontsize = 30)
+sns.scatterplot(x = 'age',  y= 'capital.loss', hue= 'target', data= train[train['capital.loss'] > 0]) #산포도를 확실하게 차이나도록  시각화 해주기 위하여 capital.loss에서 0값을 제외
